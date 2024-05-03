@@ -1,6 +1,6 @@
-﻿// 1. ADIM için örnek kodlar
+﻿// Sample codes for STEP 1
 
-using Newtonsoft.Json.Linq; // Bu satırda hata alırsanız, site dosyalarınızın olduğu bölümde bin isimli bir klasör oluşturup içerisine Newtonsoft.Json.dll adlı DLL dosyasını kopyalayın.
+using Newtonsoft.Json.Linq; // If you receive an error on this line, create a folder named bin in the section where your site files are located and copy the DLL file named Newtonsoft.Json.dll into it.
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -21,75 +21,75 @@ namespace WebApplication3
     protected void Page_Load(object sender, EventArgs e)
     {
 
-        // ####################### DÜZENLEMESİ ZORUNLU ALANLAR #######################
+        // ####################### REQUIRED FIELDS #######################
         //
-        // API Entegrasyon Bilgileri - Mağaza paneline giriş yaparak BİLGİ sayfasından alabilirsiniz.
+        // API Integration Information - You can get it from the INFORMATION page by logging into the store panel.
         string merchant_id = "XXXXXX";
         string merchant_key = "YYYYYYYYYYYYYY";
         string merchant_salt = "ZZZZZZZZZZZZZZ";
         //
-        // Müşterinizin sitenizde kayıtlı veya form vasıtasıyla aldığınız eposta adresi
+        // Your customer's email address registered on your site or received via the form
         string emailstr = "ZZZZZZZZZZZZZZ";
         //
-        // Tahsil edilecek tutar. 9.99 için 9.99 * 100 = 999 gönderilmelidir.
+        // Amount to be collected. For 9.99, 9.99 * 100 = 999 should be sent.
         int payment_amountstr = ;
         //
-        // Sipariş numarası: Her işlemde benzersiz olmalıdır!! Bu bilgi bildirim sayfanıza yapılacak bildirimde geri gönderilir.
+        // Order number: Must be unique for every transaction!! This information is sent back in the notification to your notification page.
         string merchant_oid = "";
         //
-        // Müşterinizin sitenizde kayıtlı veya form aracılığıyla aldığınız ad ve soyad bilgisi
+        // Your customer's name and surname information registered on your site or obtained through the form
         string user_namestr = "";
         //
-        // Müşterinizin sitenizde kayıtlı veya form aracılığıyla aldığınız adres bilgisi
+        // Your customer's address information registered on your site or received through the form
         string user_addressstr = "";
         //
-        // Müşterinizin sitenizde kayıtlı veya form aracılığıyla aldığınız telefon bilgisi
+        // Your customer's phone number registered on your site or received via the form
         string user_phonestr = "";
         //
-        // Ödeme bekleniyor sayfası sonrası müşterinizin yönlendirileceği sayfa
-        // !!! Bu sayfa siparişi onaylayacağınız sayfa değildir! Yalnızca müşterinizi bilgilendireceğiniz sayfadır!
-        // !!! Siparişi onaylayacağız sayfa "Bildirim URL" sayfasıdır (Bakınız: 2.ADIM Klasörü).
+        // The page your customer will be directed to after the payment waiting page
+        // !!! This page is not the page where you will confirm the order! This is the page where you will only inform your customer!
+        // !!! The page where we will confirm the order is the "Notification URL" page (See: STEP 2 Folder).
         string merchant_pending_url = "http://www.siteniz.com/basarili";
         //        
-        // !!! Eğer bu örnek kodu sunucuda değil local makinanızda çalıştırıyorsanız
-        // buraya dış ip adresinizi (https://www.whatismyip.com/) yazmalısınız. Aksi halde geçersiz coinpays_token hatası alırsınız.
+        // !!! If you are running this sample code on your local machine, not on the server
+        // You should write your external IP address (https://www.whatismyip.com/) here. Otherwise you will get an invalid coinpays_token error.
         string user_ip = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
         if (user_ip == "" || user_ip == null)
         {
             user_ip = Request.ServerVariables["REMOTE_ADDR"];
         }
         //
-        // ÖRNEK user_basket oluşturma - Ürün adedine göre object'leri çoğaltabilirsiniz
+        // EXAMPLE Creating user_basket - You can multiply objects according to the number of products
         object[][] user_basket = {
-            new object[] {"Örnek ürün 1", "18.00", 1}, // 1. ürün (Ürün Ad - Birim Fiyat - Adet)
-            new object[] {"Örnek ürün 2", "33.25", 2}, // 2. ürün (Ürün Ad - Birim Fiyat - Adet)
-            new object[] {"Örnek ürün 3", "45.42", 1}, // 3. ürün (Ürün Ad - Birim Fiyat - Adet)
+            new object[] {"Example product 1", "18.00", 1}, // 1. product (product name - per price - quantity)
+            new object[] {"Example product 2", "33.25", 2}, // 2. product (product name - per price - quantity)
+            new object[] {"Example product 3", "45.42", 1}, // 3. product (product name - per price - quantity)
             };
         /* ############################################################################################ */
 
         //
-        // Mağaza canlı modda iken test işlem yapmak için 1 olarak gönderilebilir.
+        // It can be sent as 1 for testing when the store is in live mode.
         string test_mode = "1";
         //
- 	    // Burada sepetinizin hangi para biriminde görüntülemek istediğinizi seçebilirsiniz. Aşağıda örnek değerler mevcut. Son güncel değerlere erişmek için
+ 	    // Here you can choose in which currency you would like to display your cart. Below are sample values. To access the last updated values
 
-	    // (https://app.coinpays.io/shared/currencies) adresini ziyaret edin
+	    // Visit (https://app.coinpays.io/shared/currencies)
 	    //USD-EUR-TRY-GBP-RUB-CNY-KRW
         string currency = "TRY";
 
         //
-        // Burada ödeme sayfanızın hangi dilde görüntülemek istediğinizi seçebilirsiniz. Aşağıda örnek değerler mevcut. Son güncel değerlere erişmek için
-	    // (https://app.coinpays.io/shared/languages) adresini ziyaret edin
+        // Here you can choose which language you would like to display your payment page in. Below are sample values. To access the last updated values
+	    // Visit (https://app.coinpays.io/shared/languages)
         string lang = "en";//tr-en-de-fr-es-kr-jp-ar-ru-cn-id-ua
 
-        // Burada ödemenizi hangi kripto para birimi ile almak istediğinizi seçebilirsiniz. Aşağıda örnek değerler mevcut. Son güncel değerlere erişmek için
-        // (https://app.coinpays.io/shared/coins) adresini ziyaret edin. Değer olarak "code" gelecektir.
+        // Here you can choose which cryptocurrency you would like to receive your payment with. Below are sample values. To access the last updated values
+        // Visit (https://app.coinpays.io/shared/coins?merchant_key={merchant_key}&merchant_id={$merchant_id}&merchant_salt={merchant_salt}). The value will be "code".
         string coin = "ETH";
 
-        // Burada yukarıda seçtiğiniz kripto para biriminin hangi ağda alınacağını seçebilirsiniz.
+        // Here you can choose which network to receive the cryptocurrency you chose above.
         string network = "BEP-20";
 
-        // Gönderilecek veriler oluşturuluyor
+        // Data to be sent is being created
         NameValueCollection data = new NameValueCollection();
         data["merchant_id"] = merchant_id;
         data["user_ip"] = user_ip;
@@ -97,13 +97,13 @@ namespace WebApplication3
         data["email"] = emailstr;
         data["payment_amount"] = payment_amountstr.ToString();
         //
-        // Sepet içerği oluşturma fonksiyonu, değiştirilmeden kullanılabilir.
+        // The cart content creation function can be used without modification.
         JavaScriptSerializer ser = new JavaScriptSerializer();
         string user_basket_json = ser.Serialize(user_basket);
         string user_basketstr = Convert.ToBase64String(Encoding.UTF8.GetBytes(user_basket_json));
         data["user_basket"] = user_basketstr;
         //
-        // Token oluşturma fonksiyonu, değiştirilmeden kullanılmalıdır.
+        // The token creation function must be used without modification.
         string Birlestir = string.Concat(merchant_id, user_ip, merchant_oid, emailstr, payment_amountstr.ToString(), user_basketstr);
         HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(merchant_key));
         byte[] b = hmac.ComputeHash(Encoding.UTF8.GetBytes(Birlestir));
@@ -128,7 +128,7 @@ namespace WebApplication3
 
             if (json.status == "success")
             { 
-                // "json" objesi içerisinde dönen datayı bulabilirsiniz
+                // You can find the returned data in the "json" object
             }
             else
             {

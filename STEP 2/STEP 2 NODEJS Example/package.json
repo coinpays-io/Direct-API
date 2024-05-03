@@ -1,7 +1,7 @@
 {
-  "name": "coinpays_iframe",
+  "name": "coinpays_direct_api",
   "version": "1.0.0",
-  "description": "CoinPays iFrame API",
+  "description": "CoinPays Direct API",
   "main": "app.js",
   "scripts": {
     "test": "node app.js"
